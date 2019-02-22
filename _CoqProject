@@ -1,0 +1,45 @@
+-Q . SyDPaCC
+-Q ./Core SyDPaCC.Core
+-Q ./Applications SyDPaCC.Applications
+-Q ./Bsml SyDPaCC.Bsml
+-Q ./Bsml/Model SyDPaCC.Bsml.Model
+-Q ./Bsml/DataStructures SyDPaCC.Bsml.DataStructures
+-Q ./Bsml/Skeletons SyDPaCC.Bsml.Skeletons
+-Q ./Bsml/Applications SyDPaCC.Bsml.Applications
+-Q ./Support SyDPaCC.Support
+-Q ./Support/Sigs SyDPaCC.Support.Sigs
+-Q ./Support/NLists SyDPaCC.Support.NLists
+./Bsml/Model/Core.v
+./Bsml/Model/Pid.v
+./Bsml/Model/Sequential.v
+./Bsml/DataStructures/DistributedList.v
+./Bsml/DataStructures/DistributedArray.v
+./Bsml/DataStructures/ReplicatedValue.v
+./Bsml/Skeletons/StdLib.v
+./Bsml/Skeletons/MapReduce.v
+./Core/Bmf.v
+./Core/Parallelization.v
+./Support/List.v
+./Support/Lists/Length.v
+./Support/Lists/Map.v
+./Support/Lists/Member.v
+./Support/Lists/Seq.v
+./Support/Lists/NoDup.v
+./Support/Lists/Filter.v
+./Support/Lists/Assoc.v
+./Support/NList.v
+./Support/NLists/NLength.v
+./Support/NLists/NSeq.v
+./Support/NLists/NNth.v
+./Support/NLists/NFirstSkip.v
+./Support/NLists/NScan.v
+./Support/Option.v
+./Support/Sig.v
+./Support/Sigs/Map.v
+./Support/Sigs/Nth.v
+./Support/UIP.v
+./Applications/Mps.v
+./Applications/Count.v
+./Bsml/Applications/BsmlMps.v
+./Bsml/Applications/BsmlCount.v
+Extraction

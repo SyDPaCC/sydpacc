@@ -1,0 +1,13 @@
+include config/Makefile.config
+
+all:
+	ocamlbuild  -build-dir Build -Is Extraction,Uncertified/NatInt BsmlMps.cma BsmlMps.cmxa
+	make -C Uncertified/Bsml/src ncl bcl
+	make -C Uncertified/Applications/Mps bc nc
+
+clean:
+	ocamlbuild -clean
+	ocamlbuild -clean -build-dir Build
+	rm -f Extraction/*.ml*
+	make -C Uncertified/Bsml/src clean
+	make -C Uncertified/Applications/Mps clean

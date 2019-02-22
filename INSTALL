@@ -1,0 +1,35 @@
+SyDPaCC - SYSTEMATIC DEVELOPMENT OF PROGRAMS FOR PARALLEL AND CLOUD COMPUTING
+version core-0.25
+
+                           
+PREREQUISITES
+
+  The Coq Proof Assistant: Version 8.6 or higher
+    http://coq.inria.fr    
+
+  A C compiler and a MPI library such as mpich or open-mpi.
+
+INSTALLATION INSTRUCTIONS
+
+1- Compilation of the framework (requires only Coq):
+
+   make
+
+2- Configure (checks all the additional requirements):
+
+   cd config; ./configure; cd ..
+
+
+3- Compilation of the extracted and uncertified code:
+
+   make -f Makefile.bsml
+
+4- Use mpirun to execute the compiled applications
+   present in sub-directories of Uncertified/Applications.
+
+5- Documentation:
+
+   make html
+
+   generates the documentation as html files in the
+   directory html/

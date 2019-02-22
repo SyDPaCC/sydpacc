@@ -1,0 +1,24 @@
+SyDPaCC - SYSTEMATIC DEVELOPMENT OF PROGRAMS FOR PARALLEL AND CLOUD COMPUTING
+Version core-0.25
+
+DEVELOPED BY
+  Frederic Loulergue 	(Northern Arizona University, Flagstaff, AZ, USA)
+  Julien Tesson 	(LACL, Université Paris Est Créteil, Créteil,  France)
+  Wadoud Bousdira       (Univ. Orléans, INSA Centre Val de Loire, LIFO EA 4022,
+  	   		 Orléans, France)
+
+CONTENTS
+        
+  COPYRIGHT                    Copyright notice
+  LICENSE                      License CeCill-C
+  INSTALL                      Instructions for installation
+  README                       This file
+
+  Support/	 Supporting libraries
+  Bsml/		 Axiomatisation of BSML and verified basic skeletons
+  Core/          Library for parallel program calculation
+  Applications/  Applications of the framework
+  Extraction/    Extraction commands
+  Uncertified/	 Non extracted-code, thus non verified:
+  		 - the parallel implementation of BSML on top of MPI
+		 - the main programs calling the extracted applications
