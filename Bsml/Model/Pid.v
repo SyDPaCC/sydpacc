@@ -1,7 +1,6 @@
-Require Import NArith Omega Coq.Lists.List Program Classes.EquivDec.
-Import ListNotations.
-
 From SyDPaCC.Support Require Import UIP List Sig NList.
+Require Import NArith Coq.Lists.List Program Classes.EquivDec Lia.
+Import ListNotations.
 Require Import SyDPaCC.Bsml.Model.Core.
 
 
@@ -15,18 +14,27 @@ Module Make(Bsp : BSP_PARAMETERS).
 
   Local Notation pid := { n : N | n <? Bsp.p }.
 
+  Definition ltb (x y : pid) := N.ltb (` x) (` y).
+  #[export] Hint Unfold ltb : pid.
+
+  Definition lt (x y : pid) := N.lt (` x) (` y).
+  #[export] Hint Unfold lt : pid.
+
+  Definition le (x y : pid) := N.le (` x) (` y).
+  #[export] Hint Unfold le : pid.
+  
   Ltac pid :=
     simpl in *;
     assert (0 < Bsp.p) by apply Bsp.p_spec;
     repeat 
       match goal with
-        | [ H: _ <? _ |- _ ] => apply N.ltb_lt in H
-        | [ H: N.ltb _ _ = true |- _ ] => apply N.ltb_lt in H
-        | [ |- N.ltb _ _ = true ] => apply N.ltb_lt
-        | _ => try apply N.lt_pred_l; try apply N.pred_succ;
-              try apply N.succ_pred;
-              autorewrite with length in *; auto with arith pid;
-              try (zify;omega)
+      | [ H: _ <? _ |- _ ] => apply N.ltb_lt in H
+      | [ H: N.ltb _ _ = true |- _ ] => apply N.ltb_lt in H
+      | [ |- N.ltb _ _ = true ] => apply N.ltb_lt
+      | _ => try apply N.lt_pred_l; try apply N.pred_succ;
+            try apply N.succ_pred;
+            autorewrite with length in *; auto with arith pid;
+            try lia
       end.
 
   Notation processor := { n:N | n < Bsp.p }.
@@ -39,7 +47,7 @@ Module Make(Bsp : BSP_PARAMETERS).
     now f_equal.
   Qed.
 
-  Hint Resolve proj1_sig_inj : pid.
+  #[export] Hint Resolve proj1_sig_inj : pid.
 
   Lemma pid_dec: forall (i j : pid), { i=j } + { ~ i=j }.
   Proof. 
@@ -49,7 +57,7 @@ Module Make(Bsp : BSP_PARAMETERS).
     - right; contradict H; now inversion H.
   Qed.
 
-  Program Instance pid_eq_dec : EqDec pid Logic.eq := pid_dec.
+  #[export] Program Instance pid_eq_dec : EqDec pid Logic.eq := pid_dec.
   
   Fact of_pid_aux (i:pid) : (proj1_sig i) < Bsp.p.
     destruct i; pid.
@@ -78,7 +86,7 @@ Module Make(Bsp : BSP_PARAMETERS).
     exist (fun n=>n<?Bsp.p) n (of_N'_aux H).
 
   Program Definition pids : list pid := 
-    Sig.map (seq 0 Bsp.p) _.
+    Sig.map (NList.seq 0 Bsp.p) _.
   Next Obligation.
     induction Bsp.p as [ | p IH ] using N.peano_ind.
     - rewrite seq_equation in H. contradiction.
@@ -89,28 +97,28 @@ Module Make(Bsp : BSP_PARAMETERS).
       + simpl in H; destruct H; subst; pid.
   Qed.
 
-  Hint Unfold to_N of_N of_N' pids : pid.
+  #[export] Hint Unfold to_N of_N of_N' pids : pid.
 
   Lemma pids_spec : forall (i:pid), In i pids.
   Proof.
     autounfold with pid. intros [i Hi].
     assert(i<Bsp.p) by pid. 
-    assert(In i (seq 0 Bsp.p))
-      by (apply in_seq; pid).
+    assert(In i (NList.seq 0 Bsp.p))
+      by (apply In_seq; pid).
     assert(0 <= i < Bsp.p) by pid.
     assert(forall a a' : pid, ` a = ` a' -> a = a')
       by apply proj1_sig_inj.
     now apply Sig.in_in_map. 
   Qed.
   
-  Hint Resolve pids_spec : pid.
+  #[export] Hint Resolve pids_spec : pid.
   
   Fact pids_seq :
-    List.map to_N pids = seq 0 Bsp.p.
+    List.map to_N pids = NList.seq 0 Bsp.p.
     apply Sig.map_proj1_sig.
   Qed.
   
-  Fact pids_length : length pids = Bsp.p.
+  Fact pids_length : NList.length pids = Bsp.p.
     unfold pids; now autorewrite with length.
   Qed.
 
@@ -120,15 +128,15 @@ Module Make(Bsp : BSP_PARAMETERS).
     rewrite seq_seq.
     apply NoDup_map.
     - intros x y H.
-      zify; omega.
+      lia.
     - apply seq_NoDup.
   Qed.
 
-  Hint Resolve NoDup_pids : pid.
+  #[export] Hint Resolve NoDup_pids : pid.
 
-  Hint Rewrite pids_length : length.
+  #[export] Hint Rewrite pids_length : length.
 
-  Hint Resolve Bsp.p_spec : pid.
+  #[export] Hint Resolve Bsp.p_spec : pid.
 
   Fact last_aux: N.pred Bsp.p <? Bsp.p.
     pid. 
@@ -153,13 +161,13 @@ Module Make(Bsp : BSP_PARAMETERS).
     intros [i Hi]; pid.
   Qed.
 
-  Hint Resolve lt_bsp_p N.succ_pred_pos : pid.
+  #[export] Hint Resolve lt_bsp_p N.succ_pred_pos : pid.
 
   Lemma S_last : N.succ(proj1_sig last) = Bsp.p.
     pid.
   Qed.
 
-  Hint Resolve S_last : pid.
+  #[export] Hint Resolve S_last : pid.
 
   Fact lt_cong :
     forall(n m n' m':N), n=n' -> m=m' ->
@@ -169,7 +177,7 @@ Module Make(Bsp : BSP_PARAMETERS).
 
   Fact nth_pids_aux :
     forall a : N,
-      (fun n : N => n <? Bsp.p) a <-> (fun pos : N => pos < length pids) a.
+      (fun n : N => n <? Bsp.p) a <-> (fun pos : N => pos < NList.length pids) a.
     intro; split; intro; pid.
   Qed.
 
@@ -194,21 +202,21 @@ Module Make(Bsp : BSP_PARAMETERS).
               (forall a:A, In a l -> P a) ->
               forall a:A, In a l' -> P a)
       as H' by (intros;subst;auto).
-    assert(seq 0 Bsp.p = seq 0 (N.succ (proj1_sig last)))
+    assert(NList.seq 0 Bsp.p = NList.seq 0 (N.succ (proj1_sig last)))
       by (rewrite S_last; trivial).
-    assert(forall i, In i (seq 0 (N.succ (`last))) -> i <? Bsp.p) as HIn
+    assert(forall i, In i (NList.seq 0 (N.succ (`last))) -> i <? Bsp.p) as HIn
         by now apply (H' _ _ _ _ H pids_obligation_1).
-    replace (Sig.map (seq 0 Bsp.p) _)
-        with (Sig.map (P:=fun n=>n <? Bsp.p) (seq 0 (N.succ (proj1_sig last)))
+    replace (Sig.map (NList.seq 0 Bsp.p) _)
+        with (Sig.map (P:=fun n=>n <? Bsp.p) (NList.seq 0 (N.succ (proj1_sig last)))
                       HIn)
       by (apply Sig.map_pi;pid).
     revert HIn.
-    pattern(seq 0 (N.succ(` last))).
+    pattern(NList.seq 0 (N.succ(` last))).
     rewrite seq_equation.
     rewrite <- N.succ_pos_spec.
     intro HIn; simpl; f_equal.
     now apply proj1_sig_inj.
-  Qed.
+  Qed.    
 
   Fact split_pids :
     forall i:pid,
@@ -219,11 +227,11 @@ Module Make(Bsp : BSP_PARAMETERS).
   Fact split_pids_length :
     forall pids_l pids_r i,
     pids = pids_l ++ i :: pids_r ->
-    length pids_l + length pids_r + 1 = Bsp.p.
+    NList.length pids_l + NList.length pids_r + 1 = Bsp.p.
     intros pids_l pids_r i H.
     rewrite <- pids_length, H.
     autorewrite with length.
-    zify; omega.
+    lia.
   Qed.
 
   Lemma map_inj:
@@ -244,16 +252,38 @@ Module Make(Bsp : BSP_PARAMETERS).
     intros i H.
     assert((` i)<>N.pred Bsp.p) as H0
         by (contradict H; now apply proj1_sig_inj).
-    clear H; destruct i; simpl in *; pid.
-  Admitted.
+    clear H; destruct i; simpl in *; pid;
+    try(rewrite N.pred_sub in H0; lia).
+  Qed.
   
   Definition succ (i : pid) (H:i<>last) : pid :=
     exist (fun n=>n<?Bsp.p) (N.succ (` i)) (succ_aux H).
 
+  Fact not_first_succ:
+    forall i, i<>first -> exists j Hj, i = @succ j Hj.
+  Proof.
+    intros i H.
+    assert(proj1_sig i <> 0) as H'
+      by (contradict H; apply proj1_sig_inj; rewrite H; unfold first; auto).
+    unfold succ; destruct i as [ i Hi ]; simpl in *.
+    destruct i using N.peano_ind; try clear IHi.
+    - contradiction.
+    - assert(i<?Bsp.p) as Hi' by (clear H; pid).
+      assert(of_N Hi' <> last) as Hlast.
+      {
+        unfold of_N; simpl; intro HH.
+        assert(i = proj1_sig last) as HHH by now rewrite <- HH.
+        unfold last in HHH; simpl in HHH.
+        clear H; rewrite N.pred_sub in HHH; pid.
+      }
+      exists (of_N Hi'). exists Hlast.
+      now apply proj1_sig_inj.
+  Qed.
+  
   Fact pred_aux :
     forall i : pid,  N.pred (`i) <? Bsp.p.
-    intros [ i Hi ]; pid.
-    now apply N.lt_lt_pred.
+    intros [ i Hi ]; pid;
+      try(now apply N.lt_lt_pred).
   Qed.
   
   Definition pred (i : pid) : pid :=
@@ -275,11 +305,12 @@ Module Make(Bsp : BSP_PARAMETERS).
       {
         intro H; apply f_equal with (f:=to_N) in H;
         unfold to_N, last in H; simpl in H;
-          clear i IH P H0 HS; pid.
-        rewrite N.add_1_l in HSn.
-        rewrite H in HSn.
-        rewrite N.succ_pred in HSn by (zify;omega).
-        zify; omega.
+          clear i IH P H0 HS; pid;
+        try(
+            rewrite N.add_1_l in HSn;
+            rewrite H in HSn;
+            rewrite N.succ_pred in HSn by lia;
+            lia).
       }
       assert(P i) by apply IH.
       match goal with
@@ -288,62 +319,147 @@ Module Make(Bsp : BSP_PARAMETERS).
       end.
       now apply HS.
   Qed.
-
-  Definition succ' (i:pid) : pid :=
-    match pid_dec i last with
-      | left _ => last
-      | right H => succ H
-    end.
-
-  Fact succ_succ' :
-    forall (i:pid)(H:i<>last),
-      succ H = succ' i. 
-  Proof.
-    intros i H'; unfold succ'.
-    destruct(pid_dec i last); try contradiction.
-    now (apply proj1_sig_inj; simpl).
-  Qed.
-
-  Lemma H_succ_succ':
-    forall (P:pid->Prop),
-      (forall i, P i -> P (succ' i)) ->
-      (forall i (H:i<>last),P i->P (succ H)).
-  Proof.
-    intros P HS i Hlast Hi.
-    case_eq(pid_dec i last); intros Heq _ .
-    - contradiction.
-    - rewrite succ_succ'.
-      now apply HS.
-  Qed.
-  
-  Proposition pid_ind' (P:pid->Prop) :
-    P first ->
-    (forall (i:pid), P i -> P (succ' i)) ->
-    forall i, P i.
-  Proof.
-    intros H0 HS i.
-    assert(forall i (H:i<>last),P i->P (succ H))
-      by (intros;now apply H_succ_succ').
-    now apply pid_ind.
-  Qed.
   
   Fact pid_up_to_aux (i:pid) :
-    forall i',  In i' (seq 0 (N.succ(` i))) ->
+    forall i',  In i' (NList.seq 0 (N.succ(` i))) ->
                 i' <? Bsp.p.
-    intros a H; apply in_seq in H; destruct i; pid.
+    intros a H; apply In_seq in H; destruct i; pid.
   Qed.
   
   Definition pid_up_to (i:pid) : list pid :=
-    Sig.map (P:=fun n=>n<?Bsp.p) (seq 0 (N.succ (` i))) (pid_up_to_aux i).
+    Sig.map (P:=fun n=>n<?Bsp.p) (NList.seq 0 (N.succ (` i))) (pid_up_to_aux i).
+
+  Lemma pid_up_to_firstn :
+    forall j, pid_up_to j = NList.firstn (N.succ (` j)) pids.
+  Proof.
+    intros j; apply map_inj with (f:=@proj1_sig N (fun n=>n<?Bsp.p)).
+    - apply proj1_sig_inj.
+    - unfold pid_up_to; rewrite <- NList.firstn_map; unfold pids.
+      repeat rewrite Sig.map_proj1_sig.
+      rewrite firstn_seq.
+      assert(N.min (N.succ (` j)) Bsp.p = N.succ (` j)) as Hmin
+          by (apply N.min_l_iff; destruct j; pid).
+      now rewrite Hmin.
+  Qed.
+  
+  Definition from (i:pid) : list pid.
+    refine(Sig.map (P:=fun n=>n<?Bsp.p) (NList.seq (` i) (Bsp.p-(`i))) _ ).
+    intros n H; apply In_seq in H; pid.
+  Defined.
+
+  Definition from_succ (i:pid) : list pid.
+    refine(if pid_dec i last
+           then []
+           else from (succ _)).
+    exact n.
+  Defined.
+  
+  Lemma from_le:
+    forall i j, le i j ->
+           In j (from i).
+  Proof.
+    intros i j H.
+    rewrite (in_map_iff_inj _ _ proj1_sig_inj).
+    unfold from; rewrite Sig.map_proj1_sig.
+    apply In_seq. 
+    autounfold with pid in *.
+    split; auto; destruct i, j; simpl in *; pid.
+  Qed.
+
+  Lemma In_from_split:
+    forall i j,
+      In j (from i) ->
+      exists H1 H2, from i = (Sig.map (NList.seq (` i) ( (` j) - (` i))) H1)
+                          ++ j ::
+                          (Sig.map (NList.seq (N.succ (` j)) ( Bsp.p - (N.succ (` j)) ) ) H2 ).
+  Proof.
+    intros i j Hin.
+    repeat eexists.
+    rewrite in_map_iff_inj in Hin by apply proj1_sig_inj.
+    unfold from in Hin; rewrite Sig.map_proj1_sig in Hin.
+    assert (N.le (` i) (` j)) by (apply In_seq in Hin ; pid).
+    assert(forall x, In x [ ` j ] ->  x <? Bsp.p) as HIn_j.
+    {
+      clear.
+      intros x H; simpl in H; destruct H as [ H | H ]; try now exfalso.
+      destruct j; pid.
+    }
+    match goal with
+      | [  |- _ = ?l1 ++ j :: ?l2  ] =>
+        replace (j::l2) with ( (Sig.map [ ` j ] HIn_j) ++ l2 )
+          by (simpl; f_equal; now apply proj1_sig_inj)
+    end.
+    rewrite List.app_assoc.
+    erewrite Sig.map_pi with (l:=[` j])(l':=[` j]) by solve [ apply proj1_sig_inj | auto ].
+    repeat rewrite <- Sig.map_app by apply proj1_sig_inj.
+    unfold from; apply Sig.map_pi.
+    - apply proj1_sig_inj.
+    - rewrite <- List.app_assoc; simpl; apply In_seq_split in Hin; rewrite Hin.
+      do 2 f_equal.
+      now rewrite N.add_comm, N.sub_add by (destruct i; pid).
+      Unshelve.
+      intros a H.
+      repeat (apply in_app_or in H; destruct H as [ H | H ]).
+      + apply In_seq in H;  destruct H as [ H1 H2 ].
+        destruct(N.le_decidable (` i) (` j)) as [ Hle | Hge ].
+       * rewrite N.add_comm, N.sub_add in H2 by auto.
+         destruct j as [ k Hk ]; simpl in *; clear H1; pid.
+       * apply N.nle_gt in Hge.
+         assert(` j <= ` i) as H by lia.
+         rewrite <- N.sub_0_le in H; rewrite H, N.add_0_r in H2.
+         destruct i; pid.
+      + simpl in H; destruct H as  [ H | H ]; try now exfalso.
+        rewrite <- H. destruct j; auto.
+      + apply In_seq in H. destruct H as [ H1 H2 ].
+        unfold succ in *; simpl in *.
+        pid.
+  Qed.
+
+  Fact pids_from: pids = from first.
+  Proof.
+    unfold pids, from.
+    apply Sig.map_pi.
+    - apply proj1_sig_inj.
+    - unfold first; simpl; now rewrite N.sub_0_r.
+  Qed.
+
   
   Fact pid_up_to_last:
     pids = pid_up_to last.
     unfold pid_up_to; autounfold with pid.
     assert( forall a a' : pid, ` a = ` a' -> a = a') by pid.
-    assert(  seq 0 Bsp.p = seq 0 (N.succ(` last)) ) by (now rewrite S_last).
+    assert(NList.seq 0 Bsp.p =
+           NList.seq 0 (N.succ(` last)) ) by (now rewrite S_last).
     now apply Sig.map_pi.
   Qed.
-    
+  
+  Fact pids_snoc : pids = (removelast pids) ++ [ last ].
+  Proof.
+    rewrite app_removelast_last with (l:=pids)(d:=first) at 1
+      by (rewrite pids_cons; intro H; discriminate).
+    repeat f_equal.
+    rewrite pid_up_to_last; unfold pid_up_to.
+    erewrite Sig.map_pi with (l:=NList.seq 0 (N.succ(` last)))
+                               (l':= (NList.seq 0 (` last)) ++ [` last ])
+      by solve [ apply proj1_sig_inj | apply seq_S_app ].
+    rewrite Sig.map_app by apply proj1_sig_inj; simpl.
+    rewrite list_last_app.
+    now apply proj1_sig_inj.
+    Unshelve.
+    intros a H; rewrite <- seq_S_app, In_seq in H; simpl in H.
+    rewrite N.succ_pred in H by (pose Bsp.p_spec; lia).
+    pid.
+  Qed.
+
+  Fact In_pid:
+    forall (i:pid) x, In x [` i] -> x <? Bsp.p.
+  Proof.
+    simpl; intros i n Hin.
+    destruct Hin as [ Heq | F ].
+    - subst; pid.
+    - now exfalso.
+  Qed.
+  
   Proposition pids_ind (P: list pid->Prop) :
     P [ first ] ->
     (forall (i:pid)(H:i<>last), P (pid_up_to i) -> P (pid_up_to (succ H))) ->
@@ -353,11 +469,8 @@ Module Make(Bsp : BSP_PARAMETERS).
     rewrite pid_up_to_last.
     apply pid_ind with (P:=fun i=>P (pid_up_to i)).
     - unfold pid_up_to.
-      assert(forall i, In i [ 0 ] -> i <? Bsp.p) as Hin
-          by (simpl; intros i Hi;
-              destruct Hi as [ Hi | Hi ]; subst; intuition; pid).
-      rewrite Sig.map_pi with (l':=[ 0 ])(H':=Hin).
-      + assert(Sig.map [0] Hin = [ first ]) as Heq
+      rewrite Sig.map_pi with (l':=[ 0 ])(H':=In_pid first).
+      + assert(Sig.map [0] (In_pid first) = [ first ]) as Heq
             by (simpl; f_equal; apply proj1_sig_inj; now simpl).
         now rewrite Heq.
       + apply proj1_sig_inj.
@@ -366,31 +479,21 @@ Module Make(Bsp : BSP_PARAMETERS).
     - auto.
   Qed.
 
-  Proposition pids_ind' (P: list pid->Prop) :
-    P [ first ] ->
-    (forall (i:pid), P (pid_up_to i) -> P (pid_up_to (succ' i))) ->
-    P pids.
-  Proof.
-    intros H0 HS.
-    assert(forall i (H:i<>last),P (pid_up_to i)->P (pid_up_to (succ H)))
-      by (intros;now apply H_succ_succ').
-    now apply pids_ind.
-  Qed.
-
   Lemma pid_up_to_succ :
     forall (i:pid) (Hi:i<>last),
       pid_up_to (succ Hi) = (pid_up_to i) ++ [succ Hi].
   Proof.
     intros i Hi; unfold pid_up_to.
-    assert(forall i', In i' (seq 0 (N.succ(` i)) ++ [N.succ (` i)]) -> i' <? Bsp.p) as Hi'.
+    assert(forall i',In i' (NList.seq 0 (N.succ(` i)) ++
+                                 [N.succ (` i)]) -> i' <? Bsp.p) as Hi'.
     {
       intros i' Hi'. apply in_app_or in Hi'. destruct Hi' as [Hi' | Hi'].
       - eapply pid_up_to_aux; eauto.
       - assert(i' = N.succ (` i)) by pid. subst.
         now apply succ_aux in Hi. 
     }
-    assert(  Sig.map (seq 0 (N.succ (` i))) (pid_up_to_aux i) ++ [succ Hi] =
-            Sig.map (seq 0 (N.succ (` i)) ++ [N.succ (` i)]) Hi' ) as Heq.
+    assert(  Sig.map (NList.seq 0 (N.succ (` i))) (pid_up_to_aux i) ++ [succ Hi] =
+            Sig.map (NList.seq 0 (N.succ (` i)) ++ [N.succ (` i)]) Hi' ) as Heq.
     {
       repeat rewrite Sig.map_app by apply proj1_sig_inj. f_equal.
       - auto using Sig.map_pi, proj1_sig_inj.
@@ -406,7 +509,7 @@ Module Make(Bsp : BSP_PARAMETERS).
     let H := fresh "Hpids" in
     destruct (split_pids i) as [pids_l [pids_r H]];
       try rewrite H.
-   
+
 End Make.
       
 Module Type TYPE (Bsp : BSP_PARAMETERS).

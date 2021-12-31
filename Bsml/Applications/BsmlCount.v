@@ -3,7 +3,7 @@
 Require Import SyDPaCC.Core.Bmf SyDPaCC.Core.Parallelization.
 Require Import SyDPaCC.Applications.Count.
 
-Require SyDPaCC.Bsml.Model.Core SyDPaCC.Bsml.Model.Pid 
+Require Import SyDPaCC.Bsml.Model.Core SyDPaCC.Bsml.Model.Pid 
         SyDPaCC.Bsml.DataStructures.DistributedList
         SyDPaCC.Bsml.DataStructures.ReplicatedValue
         SyDPaCC.Bsml.Skeletons.StdLib
@@ -16,10 +16,10 @@ Open Scope sydpacc_scope.
 Module Make (Import Bsml: Core.BSML).
 
   Module Pid       := Pid.Make Bsml.Bsp.
-  Module ParList   := DistributedList.C Bsml Pid.
-  Module ReplPar   := ReplicatedValue.C Bsml Pid.
   Module StdLib    := StdLib.Make Bsml Pid.
-  Module MapReduce := MapReduce.Make Bsml Pid StdLib ParList ReplPar.
+  Module Import ParList   := DistributedList.C Bsml Pid.
+  Module Import ReplPar   := ReplicatedValue.C Bsml Pid.
+  Module Import MapReduce := MapReduce.Make Bsml Pid StdLib ParList ReplPar.
 
   Section Count.
 

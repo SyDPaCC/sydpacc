@@ -33,3 +33,5 @@ struct
   let proj v = fun n -> (Bsmlmpi.proj v) (int_of_n n)
 
 end
+
+module Nint = struct include Nint end

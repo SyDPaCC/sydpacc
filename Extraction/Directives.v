@@ -1,4 +1,6 @@
-Extraction Blacklist List String Map.
+Require Extraction.
+
+Extraction Blacklist List String Map Natint NatIntm.
 
 Require Import ExtrOcamlBasic.
 

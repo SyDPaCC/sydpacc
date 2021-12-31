@@ -1,13 +1,38 @@
 include config/Makefile.config
 
 all:
-	ocamlbuild  -build-dir Build -Is Extraction,Uncertified/NatInt BsmlMps.cma BsmlMps.cmxa
-	make -C Uncertified/Bsml/src ncl bcl
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt BsmlMps.cma BsmlMps.cmxa
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt BsmlBm.cma BsmlBm.cmxa
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt Candidates.cma Candidates.cmxa
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt MapOne.cma MapOne.cmxa
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt SumValues.cma SumValues.cmxa
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt LTree.cma LTree.cmxa
+	ocamlbuild -r -build-dir Build -Is Extraction,Uncertified/NatInt BTree.cma BTree.cmxa
+	make -C Uncertified/Bsml/src ncl bcl 
 	make -C Uncertified/Applications/Mps bc nc
+	make -C Uncertified/Applications/BracketMatching bc nc
+	make -C Tree/Uncertified/Applications/Generate bc nc
+	make -C Tree/Uncertified/Applications/Separate bc nc
+	make -C Tree/Uncertified/Applications/MapOne bc nc
+	make -C Tree/Uncertified/Applications/Candidates bc nc
+	make -C Tree/Uncertified/Applications/Candidates_matrix bc nc
+	make -C Tree/Uncertified/Applications/SumValues bc nc
+
 
 clean:
-	ocamlbuild -clean
 	ocamlbuild -clean -build-dir Build
-	rm -f Extraction/*.ml*
 	make -C Uncertified/Bsml/src clean
 	make -C Uncertified/Applications/Mps clean
+	make -C Uncertified/Applications/BracketMatching clean
+	make -C Tree/Uncertified/Applications/Generate clean
+	make -C Tree/Uncertified/Applications/Separate clean
+	make -C Tree/Uncertified/Applications/MapOne clean	
+	make -C Tree/Uncertified/Applications/Candidates clean
+	make -C Tree/Uncertified/Applications/Candidates_matrix clean
+	make -C Tree/Uncertified/Applications/SumValues clean
+
+cleanall: clean
+	rm -f Extraction/*/*.ml*
+	rm Tree/Uncertified/Applications/*.type        
+	rm Tree/Uncertified/Applications/*tree
+	

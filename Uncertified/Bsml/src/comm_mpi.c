@@ -98,8 +98,7 @@ value bsmlimpl_alltoall(value sendbuf, value sendlengths,
 
 value bsmlimpl_wtime(value unit)
 {
-  CAMLparam1(unit);
-  CAMLreturn(copy_double(MPI_Wtime()));
+  return copy_double(MPI_Wtime());
 }
 
 value bsmlimpl_abort(value errorcode)

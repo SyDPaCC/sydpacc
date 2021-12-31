@@ -27,7 +27,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp)(Import StdLib: Std
 
   Definition replicate A (x:A) : par A :=
     mkpar(fun _ => x).
-  Hint Unfold replicate : bsml.
+  #[export] Hint Unfold replicate : bsml.
   
   Lemma replicate_spec:
     forall A (x:A) i, get (replicate x) i = x.
@@ -37,7 +37,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp)(Import StdLib: Std
 
   Definition parfun A B (f:A->B)(v:par A) : par B :=
     apply (replicate f) v.
-  Hint Unfold parfun : bsml.
+  #[export] Hint Unfold parfun : bsml.
 
   Lemma parfun_spec:
     forall A B (f:A->B) v i, get(parfun f v) i=f(get v i).
@@ -48,12 +48,12 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp)(Import StdLib: Std
   (** ** Parallel [map] *)
   Definition par_map (A B:Type)(f:A->B) : par(list A)->par(list B) := 
     parfun (map' f).
-  Hint Unfold par_map : bsml.
-  Hint Rewrite replicate_spec parfun_spec : bsml.
-  Hint Rewrite map'_map map_app flatmap_app @reduce_app: bsml.
+  #[export] Hint Unfold par_map : bsml.
+  #[export] Hint Rewrite replicate_spec parfun_spec : bsml.
+  #[export] Hint Rewrite map'_map map_app flatmap_app @reduce_app: bsml.
 
   (** [par_map] is a parallel version of [List.map]. *)
-  Global Program Instance  map_par_map A B (f:A->B) : FunCorr (map f) (par_map f).
+  #[export] Program Instance  map_par_map A B (f:A->B) : FunCorr (map f) (par_map f).
   Next Obligation.
     unfold PL.join.  apply pids_ind.
     - simpl; autounfold with bsml; now autorewrite with bsml.
@@ -78,10 +78,10 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp)(Import StdLib: Std
     let local := parfun (reduce op) v in       (* local reductions *)
     let list  := List.map (proj local) pids in (* vector -> list   *)
     reduce op list.         (* reduction of the partial reductions *)
-  Hint Unfold par_reduce : bsml.
+  #[export] Hint Unfold par_reduce : bsml.
 
   (** [par_reduce] is a parallel version of [reduce]. *)
-  Global Program Instance reduce_par_reduce `(op:A->A->A) `{Monoid A op e} :
+  #[export] Program Instance reduce_par_reduce `(op:A->A->A) `{Monoid A op e} :
     FunCorr (reduce op) (par_reduce op).
   Next Obligation.
     unfold PL.join, par_reduce; apply pids_ind.
@@ -113,10 +113,10 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp)(Import StdLib: Std
       repeat rewrite left_neutral;
       now autorewrite with bsml.
   Qed.
-  Hint Unfold par_reduce' : bsml.
+  #[export] Hint Unfold par_reduce' : bsml.
 
   (** [par_reduce'] is a parallel version of [reduce]. *)
-  Global Program Instance reduce_par_reduce' `(op:A->A->A) `{Monoid A op e} :
+  #[export] Program Instance reduce_par_reduce' `(op:A->A->A) `{Monoid A op e} :
     FunCorr (reduce op) (par_reduce' op).
   Next Obligation.
     unfold PL.join, RP.join, par_reduce';

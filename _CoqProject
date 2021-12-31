@@ -1,4 +1,3 @@
--Q . SyDPaCC
 -Q ./Core SyDPaCC.Core
 -Q ./Applications SyDPaCC.Applications
 -Q ./Bsml SyDPaCC.Bsml
@@ -7,39 +6,43 @@
 -Q ./Bsml/Skeletons SyDPaCC.Bsml.Skeletons
 -Q ./Bsml/Applications SyDPaCC.Bsml.Applications
 -Q ./Support SyDPaCC.Support
--Q ./Support/Sigs SyDPaCC.Support.Sigs
--Q ./Support/NLists SyDPaCC.Support.NLists
+-Q ./Extraction SyDPaCC.Extraction
+-Q ./Tree SyDPaCC.Tree
+-Q ./Tree/Support SyDPaCC.Tree.Support
+-Q ./Tree/Applications SyDPaCC.Tree.Applications
 ./Bsml/Model/Core.v
 ./Bsml/Model/Pid.v
 ./Bsml/Model/Sequential.v
 ./Bsml/DataStructures/DistributedList.v
-./Bsml/DataStructures/DistributedArray.v
+./Bsml/DataStructures/DistributedVector.v
 ./Bsml/DataStructures/ReplicatedValue.v
 ./Bsml/Skeletons/StdLib.v
 ./Bsml/Skeletons/MapReduce.v
 ./Core/Bmf.v
+./Core/Diffusion.v
 ./Core/Parallelization.v
 ./Support/List.v
-./Support/Lists/Length.v
-./Support/Lists/Map.v
-./Support/Lists/Member.v
-./Support/Lists/Seq.v
-./Support/Lists/NoDup.v
-./Support/Lists/Filter.v
-./Support/Lists/Assoc.v
 ./Support/NList.v
-./Support/NLists/NLength.v
-./Support/NLists/NSeq.v
-./Support/NLists/NNth.v
-./Support/NLists/NFirstSkip.v
-./Support/NLists/NScan.v
 ./Support/Option.v
 ./Support/Sig.v
-./Support/Sigs/Map.v
-./Support/Sigs/Nth.v
 ./Support/UIP.v
 ./Applications/Mps.v
 ./Applications/Count.v
 ./Bsml/Applications/BsmlMps.v
 ./Bsml/Applications/BsmlCount.v
-Extraction
+./Bsml/Skeletons/Accumulate.v
+./Applications/BracketMatching.v
+./Bsml/Applications/BsmlBm.v
+./Tree/Support/Combine.v
+./Tree/Support/NOption.v
+./Tree/BTree.v
+./Tree/VerticalComposition.v
+./Tree/Closure.v
+./Tree/LTree.v
+./Tree/Skeletons.v
+./Tree/Applications/Height.v
+./Tree/Applications/Candidates.v
+./Tree/Applications/MapOne.v
+./Tree/Applications/SumValues.v
+./Extraction/Directives.v
+./Extraction/Make.v

@@ -7,7 +7,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp).
 
   Definition replicate A (x:A) : par A :=
     mkpar(fun _ => x).
-  Hint Unfold replicate : bsml.
+  #[export] Hint Unfold replicate : bsml.
   
   Lemma replicate_spec:
     forall A (x:A) i, get (replicate x) i = x.
@@ -17,7 +17,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp).
 
   Definition parfun A B (f:A->B)(v:par A) : par B :=
     apply (replicate f) v.
-  Hint Unfold parfun : bsml.
+  #[export] Hint Unfold parfun : bsml.
 
   Lemma parfun_spec:
     forall A B (f:A->B) v i, get(parfun f v) i=f(get v i).
@@ -25,9 +25,19 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp).
     intros; now repeat autounfold with bsml; autorewrite with bsml.
   Qed.
 
+  #[export] Hint Rewrite replicate_spec parfun_spec : bsml.
+  
+  Lemma parfun_ext:
+    forall A B (f g:A->B) v,
+      (forall a, f a = g a) -> parfun f v = parfun g v.
+  Proof.
+    intros A B f g v H; apply par_eq; intro i;
+      autorewrite with bsml; now apply H.
+  Qed.
+  
   Definition parfun2 A B C (f:A->B->C)(v:par A)(v':par B) : par C :=
     apply (parfun f v) v'.
-  Hint Unfold parfun2 : bsml.
+  #[export] Hint Unfold parfun2 : bsml.
 
   Lemma parfun2_spec:
     forall A B C (f:A->B->C) v v' i, get(parfun2 f v v') i=f(get v i)(get v' i).
@@ -35,8 +45,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp).
     intros; now repeat autounfold with bsml; autorewrite with bsml.
   Qed.
 
-  Hint Rewrite replicate_spec parfun_spec parfun2_spec : bsml.
-
+  #[export] Hint Rewrite parfun2_spec : bsml.
   
   Definition put_list A (data: par(list(pid*A))) : par(list A) :=
     let msg := parfun 
@@ -44,7 +53,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp).
                  data in
     let is_some := fun (x:option A) => match x with Some _ => true | _ => false end in
     parfun (fun f => filter_map_some f Pid.pids) (put msg).
-  Hint Unfold put_list : bsml.
+  #[export] Hint Unfold put_list : bsml.
   
   Lemma put_list_spec:
     forall A v i (value:A),
@@ -61,7 +70,7 @@ Module Make(Import Bsml: BSML)(Import Pid: Pid.TYPE Bsml.Bsp).
       + now rewrite assoc_in_first.
       + apply pids_spec.
   Qed.
-  Hint Rewrite put_list_spec: bsml.
+  #[export] Hint Rewrite put_list_spec: bsml.
   
 End Make.
 

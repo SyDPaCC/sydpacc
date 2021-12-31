@@ -1,4 +1,4 @@
-Require Import Coq.Lists.List Program NArith Omega.
+Require Import Coq.Lists.List Program NArith Lia.
 From SyDPaCC.Bsml.Model Require Import Core Pid.
 From SyDPaCC.Support Require Import UIP Sig List NList.
 
@@ -30,7 +30,7 @@ Module Implementation (Import B : BSP_PARAMETERS) <: BSML.
     exists maxPid:N, Bsp.p = N.succ maxPid.
   Proof.
     destruct Bsp.p as [| maxpid Hmaxpid] eqn:Hp using N.peano_ind.
-    - set(H:=Bsp.p_spec). contradict Hp; zify; omega.
+    - set(H:=Bsp.p_spec). contradict Hp; lia.
     - exists maxpid; trivial.
   Qed.
 
@@ -66,7 +66,7 @@ Module Implementation (Import B : BSP_PARAMETERS) <: BSML.
   (** ** BSML Primitives *)
   Program Definition 
     mkpar {A:Type}(f: pid -> A) : par A :=
-    map f pids.
+    List.map f pids.
   Next Obligation.
     pid.
   Qed.
@@ -82,18 +82,17 @@ Module Implementation (Import B : BSP_PARAMETERS) <: BSML.
     rewrite Sig.nth_spec with (default:=0); simpl.
     rewrite seq_seq.
     replace 0 with (N.of_nat 0%nat) by auto.
-    rewrite map_nth, seq_nth;
+    rewrite List.map_nth, seq_nth;
       destruct i; pid.
   Qed.
     
   Program Definition apply {A B:Type}(vf:par(A->B))(vx: par A):
     par B := 
-    map(fun (p:((A->B)*A)) => let (f,v):=p in f v)
+    List.map(fun (p:((A->B)*A)) => let (f,v):=p in f v)
        (combine vf vx).
   Next Obligation.
     destruct vf as [vf H], vx as [vx H']; simpl.
-    length; 
-    now rewrite H, H'.
+    length.
   Qed.
   
   Lemma apply_spec:
@@ -117,7 +116,7 @@ Module Implementation (Import B : BSP_PARAMETERS) <: BSML.
   
   Program Definition put {A:Type}(vf: par (pid -> A)):
     par(pid -> A) :=
-    map
+    List.map
       (fun (dst src:pid)=>(Sig.nth vf src) dst)
       pids.
   Next Obligation.
@@ -146,7 +145,7 @@ Module Implementation (Import B : BSP_PARAMETERS) <: BSML.
     rewrite Sig.nth_spec with (default:=p); simpl.
     rewrite seq_seq.
     destruct i, j; simpl; clear pos pos'. rewrite <- (N2Nat.id  p).
-    rewrite map_nth, seq_nth; pid.
+    rewrite List.map_nth, seq_nth; pid.
   Qed.
   
   Definition proj {A:Type}(v: par A) : pid -> A :=

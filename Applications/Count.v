@@ -1,4 +1,4 @@
-Require Import Coq.Lists.List Coq.Classes.EquivDec Omega. Import ListNotations.
+Require Import Coq.Lists.List Coq.Classes.EquivDec Lia. Import ListNotations.
 Require Import SyDPaCC.Core.Bmf  SyDPaCC.Support.List.
 Set Implicit Arguments.
 Generalizable All Variables.
@@ -28,7 +28,7 @@ Section Count.
     constructor; induction l as [ | x xs IH ]; simpl.
     - trivial.
     - rewrite <- IH; clear IH; unfold opl, count_spec; simpl.
-      destruct(p x); simpl; omega.
+      destruct(p x); simpl; lia.
   Qed.
 
   Definition opr (count:nat)(a:A) : nat :=

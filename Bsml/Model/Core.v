@@ -106,8 +106,8 @@ Module Type BSML.
 
   End Primitives.
 
-  Hint Rewrite mkpar_spec apply_spec put_spec proj_spec: bsml.
+  #[export] Hint Rewrite mkpar_spec apply_spec put_spec proj_spec: bsml.
 
-  Hint Resolve par_eq : bsml.
+  #[export] Hint Resolve par_eq : bsml.
 
 End BSML.

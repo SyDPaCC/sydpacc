@@ -1,4 +1,4 @@
-Require Import Coq.Logic.Eqdep_dec Arith.
+Require Import Coq.Logic.Eqdep_dec Arith NArith.
 
 Module Types.
 
@@ -14,7 +14,12 @@ Module Types.
     Definition eq_dec := eq_nat_dec.
   End Nat.
 
+  Module N.
+    Definition U:=N.
+    Definition eq_dec := N.eq_dec.
+  End N.
 End Types.
 
 Module Bool := DecidableEqDep Types.Bool.
 Module Nat := DecidableEqDep Types.Nat.
+Module N := DecidableEqDep Types.N.

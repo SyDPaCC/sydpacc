@@ -1,4 +1,4 @@
-Require Import Coq.Lists.List Program SyDPaCC.Core.Bmf. Import ListNotations.
+Require Import Coq.Lists.List Lia Program SyDPaCC.Core.Bmf. Import ListNotations.
 Require Import Structures.Orders Structures.GenericMinMax ZAxioms ZMaxMin.
 
 (* ---------------------------------------------------- *)
@@ -21,17 +21,18 @@ Module Type HasMaxAdd :=
   Typ <+ ZeroSuccPred <+ HasEq <+ HasLe <+ HasMax <+ AddSubMul'<+ Opp'.
 
 Module Type MaxProp (Import T : HasMaxAdd).
-  Global Declare Instance add_max_distr : Distributivity add max.
+  #[export] Declare Instance add_max_distr : Distributivity add max.
 End MaxProp.
 
 Module Type AddProp (Import T : HasMaxAdd).
-  Global Declare Instance add_zero_monoid : 
+  #[export] Declare Instance add_zero_monoid : 
     Monoid add  zero.
-  Global Declare Instance add_comm : 
+  #[export] Declare Instance add_comm : 
     Commutative add.
   Axiom add_opp_diag_l:
     forall n, n + -n = zero.
-  Global Declare Instance le_trans : Transitive le.
+  #[export] Declare Instance le_trans : Transitive le.
+  #[export] Declare Instance le_refl : Reflexive le.
   Axiom add_le : forall n m p, le n m -> le (p + n) (p + m).
 End AddProp.
 
@@ -53,7 +54,7 @@ Module Make(Import N : Number).
 
   Module Import A := UsualMinMaxProperties N N.
 
-  Global Instance max_assoc : Associative max.
+  #[export] Instance max_assoc : Associative max.
   Proof. 
     constructor; intros; rewrite max_assoc; trivial.
   Qed.
@@ -108,7 +109,7 @@ Module Make(Import N : Number).
   Definition opl (a:t) (b:t*t) : t*t := 
     ( max 0 (a + fst b), a + (snd b) ).
   
-  Instance ms_leftwards : Leftwards ms_spec opl (0,0).
+  #[export] Instance ms_leftwards : Leftwards ms_spec opl (0,0).
   Proof.
     constructor; induction l as [ | x xs IH ]; simpl.
     - trivial.
@@ -133,7 +134,7 @@ Module Make(Import N : Number).
   Definition opr (a:t*t) (b:t) : t*t := 
     (max (fst a) ((snd a)+b),(snd a)+b).
 
-  Instance ms_rightwards : Rightwards ms_spec opr (0,0).
+  #[export] Instance ms_rightwards : Rightwards ms_spec opr (0,0).
   Proof.
     constructor; induction l as [ | x xs IH ] using rev_ind; simpl.
     - trivial.
@@ -157,48 +158,85 @@ Module Make(Import N : Number).
   (** *** [ms'] is a weak right inverse droit of [ms_spec] *)
   Definition ms' (p:t*t) := let (m,s) := p in [ m; s + -m].
 
-  Hint Unfold ms_spec ms_spec ms' tupling sum reduce mps_spec compose comp' comp'' : ms.
+  #[export] Hint Unfold ms_spec ms_spec ms' tupling sum reduce mps_spec compose comp' comp'' : ms.
 
-  Program Instance ms_right_inverse : Right_inverse ms_spec ms'.
+  Lemma sum_cons :
+    forall a l, sum (a::l) = a + sum l.
+  Proof.
+    intros a l.
+    unfold sum, reduce. simpl.
+    replace (0 + a) with (a + 0) by
+      (now rewrite right_neutral, left_neutral by typeclasses eauto).
+    now rewrite fold_left_prop by typeclasses eauto.
+  Qed.
+
+  Lemma mps_cons :
+    forall h t, mps_spec (h::t) = max 0 (h + mps_spec t).
+  Proof.
+    intros h t.
+    unfold mps_spec, comp', comp''.
+    simpl. rewrite map_sum.
+    replace (sum []) with 0 by now compute.
+    now erewrite maximum_add.
+  Qed.
+  
+  Lemma sum_le_mps_spec: forall l, sum l <= mps_spec l.
+  Proof.
+    induction l as [ | h t IH].
+    - compute. apply reflexivity.
+    - rewrite mps_cons, sum_cons.
+      apply transitivity with (y := max 0 (h + sum t)).
+      + apply le_max_r.
+      + apply max_le_compat_l.
+        now apply add_le.
+  Qed.
+
+  Corollary max_sum_mps :
+    forall l, max (mps_spec l) (sum l) = mps_spec l.
+  Proof. intro l. apply max_l, sum_le_mps_spec. Qed. 
+
+  Lemma le_0_mps : forall l, 0 <= mps_spec l.
+  Proof.
+    induction l as [ | h t IH].
+    - now compute.
+    - rewrite mps_cons.
+      apply le_max_l.
+  Qed.
+  
+  #[export] Program Instance ms_right_inverse : Right_inverse ms_spec ms'.
   Next Obligation.
-    induction l as [|x xs IH].
-    - repeat (autounfold with ms; simpl); repeat rewrite add_opp_diag_l;
-      repeat rewrite (@left_neutral _ _ add 0) by typeclasses eauto;
-      repeat rewrite max_l; trivial;
-      apply le_lteq; now right. 
-    - assert(forall a b, sum[a;b + -a] = b) as H.
+    assert(H1: mps_spec l = mps_spec [mps_spec l; sum l + - mps_spec l]).
+    {
+      assert(forall a b, sum[a;b + -a] = b) as H.
       {
         autounfold with ms; compute; intros.
         now rewrite (left_neutral a), (commutative b),
         <- associative, add_opp_diag_l, left_neutral.
       }
-      unfold ms_spec, tupling in *; simpl in *.
-      rewrite H.
-      f_equal; rewrite (commutative (fold_left add xs (0+x))).
-      autounfold with ms ; unfold comp', comp''; simpl.
-      rewrite (@commutative _ add), H by typeclasses eauto; simpl.
-      replace (sum []) with 0 in * by auto.
-      assert(forall a, sum [a] = a)
-        as Hs by (autounfold with ms ; simpl; apply left_neutral).
-      rewrite Hs.
-      rewrite fold_left_prop, @left_neutral with (op:=add) by typeclasses eauto.
-      rewrite <- fold_left_prop by typeclasses eauto.
-      repeat rewrite max_l; try (apply le_lteq; now right); trivial.
-      assert(exists l, prefix xs = l ++ [xs]) as [l Hp].
-      {
-        clear H IH Hs x. induction xs as [|x xs [l Hl]].
-        - exists (@nil (list t)); simpl; trivial.
-        - simpl; rewrite Hl, map_app; simpl.
-          now exists([]::map(cons x) l).
-      }
-      rewrite Hp, map_app, map_app, fold_left_app. simpl.
-      unfold sum, reduce; simpl;
-      rewrite @left_neutral with (op:=add) by typeclasses eauto.
-      apply le_max_r.
+      assert(forall a, sum [a] = a) as Hs
+          by (autounfold with ms ; simpl; apply left_neutral).
+      pose (Hmax:=max_sum_mps).
+      unfold mps_spec, comp', comp'' in *. simpl.
+      rewrite H, Hs, associative, Hmax.
+      now rewrite max_r by apply le_0_mps.
+    }
+    assert(H2: sum l = sum [mps_spec l; sum l + - mps_spec l]).
+    {
+      unfold sum, reduce. simpl.
+      rewrite (@commutative _ add) by typeclasses eauto.
+      rewrite add_0_l.
+      rewrite (@associative _ add) by typeclasses eauto.
+      replace ((- mps_spec l + mps_spec l)) with (mps_spec l + - mps_spec l)
+        by apply commutative.
+      rewrite add_opp_diag_l.
+      now rewrite right_neutral.
+    }
+    unfold ms_spec. autounfold with sydpacc.
+    now f_equal.
   Qed.
 
   (** *** [ms_spec] is an homomorphism *)
-  Instance ms: Homomorphic ms_spec (fun l r=>ms_spec(ms' l ++ ms' r)).
+  #[export] Instance ms: Homomorphic ms_spec (fun l r=>ms_spec(ms' l ++ ms' r)).
     typeclasses eauto.
   Qed.
   
@@ -252,7 +290,7 @@ Module Make(Import N : Number).
   Qed.
   
   (** An optimised version of the binary operator defining the homomophism *)
-  Program Instance opt_op : Optimised_op ms_spec.
+  #[export] Program Instance opt_op : Optimised_op ms_spec.
   Next Obligation.
     assert(forall m n, m + (n + - m) = n)
       as add_opp by 
@@ -282,7 +320,7 @@ Module Make(Import N : Number).
     reflexivity.
   Defined.
 
-  Program Instance opt_f : Optimised_f ms_spec.
+  #[export] Program Instance opt_f : Optimised_f ms_spec.
   Next Obligation.
     eexists. intro a. compute. rewrite (left_neutral a).
     reflexivity.

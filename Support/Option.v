@@ -1,14 +1,8 @@
-Require Import Coq.Lists.List Program Relation_Definitions. Import ListNotations.
+Require Import Coq.Lists.List Program Relation_Definitions.
+Import ListNotations.
 Set Implicit Arguments.
 
-(** Functions on the [option] type.  *)
-
-(** Removing the [Some] constructor using a default value. *) (* TODO: to keep? *)
-Definition no_some_default  (A:Type) (a: option A) (d: A) :=
-  match a with 
-    | None => d
-    | Some a => a
-  end.
+(** * Functions on the [option] Type *)
 
 (** Removing the [Some] constructor using a proof that the argument is
     different from [None]. *)          
@@ -42,7 +36,7 @@ Proof.
   [ f_equal | inversion H ]; auto.
 Qed.
 
-Hint Rewrite some_no_some: option.
+#[export] Hint Rewrite some_no_some: option.
 
 (** Conversion to [bool]. *)
 Definition is_some (A:Type)(x:option A) : bool := 

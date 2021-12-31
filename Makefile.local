@@ -1,0 +1,7 @@
+post-all::
+	mv *.ml Extraction
+	mv *.mli Extraction
+
+clean::
+	rm -f Extraction/*.ml
+	rm -f Extraction/*.mli
